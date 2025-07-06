@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Mobile-Friendly Snake Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">Snake Game</h1>
+    <canvas id="game" width="320" height="320" tabindex="0"></canvas>
+    <div id="message"></div>
+    <div class="touch-controls">
+      <div class="tc-row">
+        <button class="btn" id="btn-up">▲</button>
+      </div>
+      <div class="tc-row">
+        <button class="btn" id="btn-left">◀</button>
+        <button class="btn" id="btn-down">▼</button>
+        <button class="btn" id="btn-right">▶</button>
+      </div>
+    </div>
+  </div>
+  <script src="snake.js"></script>
+</body>
+</html>

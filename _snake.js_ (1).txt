@@ -1,0 +1,205 @@
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const messageDiv = document.getElementById("message");
+const GRID_SIZE = 16; // 16x16 grid
+const CELL = canvas.width / GRID_SIZE;
+
+let snake, direction, nextDirection, fruit, running, fruitsEaten, allowInput, gameOver;
+
+function resetGame() {
+  snake = [
+    { x: 8, y: 8 },
+    { x: 7, y: 8 }
+  ];
+  direction = "right";
+  nextDirection = "right";
+  fruitsEaten = 0;
+  running = true;
+  allowInput = true;
+  gameOver = false;
+  spawnFruit();
+  draw();
+  showMessage("");
+}
+
+function drawCell(x, y, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x * CELL, y * CELL, CELL - 2, CELL - 2);
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw fruit
+  drawCell(fruit.x, fruit.y, "#ff2d2d");
+
+  // Draw snake
+  for (let i = 0; i < snake.length; i++) {
+    drawCell(snake[i].x, snake[i].y, "#22ff44");
+  }
+}
+
+function spawnFruit() {
+  let valid = false;
+  while (!valid) {
+    fruit = {
+      x: Math.floor(Math.random() * GRID_SIZE),
+      y: Math.floor(Math.random() * GRID_SIZE)
+    };
+    // No spawn on snake
+    valid = !snake.some(seg => seg.x === fruit.x && seg.y === fruit.y);
+  }
+}
+
+function showMessage(msg, win = false) {
+  messageDiv.innerHTML = msg;
+  messageDiv.className = win ? "swami" : "";
+}
+
+function update() {
+  if (!running) return;
+
+  direction = nextDirection;
+
+  // Calculate new head
+  const head = { ...snake[0] };
+  switch (direction) {
+    case "up":    head.y -= 1; break;
+    case "down":  head.y += 1; break;
+    case "left":  head.x -= 1; break;
+    case "right": head.x += 1; break;
+  }
+
+  // Wall collision
+  if (
+    head.x < 0 || head.x >= GRID_SIZE ||
+    head.y < 0 || head.y >= GRID_SIZE
+  ) {
+    return gameEnd(false);
+  }
+
+  // Self collision
+  if (snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+    return gameEnd(false);
+  }
+
+  snake.unshift(head);
+
+  // Eat fruit
+  if (head.x === fruit.x && head.y === fruit.y) {
+    fruitsEaten++;
+    if (fruitsEaten >= 5) {
+      gameEnd(true);
+      return;
+    }
+    spawnFruit();
+  } else {
+    snake.pop();
+  }
+
+  draw();
+}
+
+function gameEnd(win) {
+  running = false;
+  allowInput = false;
+  gameOver = true;
+  draw();
+  if (win) {
+    showMessage("🎉 Swami Sapadla 🎉", true);
+  } else {
+    showMessage("Game Over!");
+  }
+}
+
+let lastTick = 0;
+const SPEED = 110;
+
+function loop(now = 0) {
+  if (running && now - lastTick > SPEED) {
+    update();
+    lastTick = now;
+  }
+  requestAnimationFrame(loop);
+}
+
+function handleDirectionInput(newDir) {
+  if (!allowInput) return;
+  // Prevent direct reversal
+  if (
+    (direction === "up" && newDir === "down") ||
+    (direction === "down" && newDir === "up") ||
+    (direction === "left" && newDir === "right") ||
+    (direction === "right" && newDir === "left")
+  ) return;
+  nextDirection = newDir;
+}
+
+// Keyboard controls
+window.addEventListener("keydown", e => {
+  switch (e.key) {
+    case "ArrowUp":
+    case "w":
+      handleDirectionInput("up"); break;
+    case "ArrowDown":
+    case "s":
+      handleDirectionInput("down"); break;
+    case "ArrowLeft":
+    case "a":
+      handleDirectionInput("left"); break;
+    case "ArrowRight":
+    case "d":
+      handleDirectionInput("right"); break;
+    case "Enter":
+      if (gameOver) resetGame();
+      break;
+  }
+});
+
+// Touch controls (swipe)
+let touchStartX = 0, touchStartY = 0;
+canvas.addEventListener("touchstart", e => {
+  if (e.touches.length !== 1) return;
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+canvas.addEventListener("touchend", e => {
+  if (!allowInput || e.changedTouches.length !== 1) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > 20 || Math.abs(dy) > 20) {
+    if (Math.abs(dx) > Math.abs(dy)) {
+      if (dx > 0) handleDirectionInput("right");
+      else handleDirectionInput("left");
+    } else {
+      if (dy > 0) handleDirectionInput("down");
+      else handleDirectionInput("up");
+    }
+  }
+}, { passive: true });
+
+// On-screen buttons
+document.getElementById("btn-up").addEventListener("click", () => handleDirectionInput("up"));
+document.getElementById("btn-down").addEventListener("click", () => handleDirectionInput("down"));
+document.getElementById("btn-left").addEventListener("click", () => handleDirectionInput("left"));
+document.getElementById("btn-right").addEventListener("click", () => handleDirectionInput("right"));
+
+// Tap canvas to restart after game over
+canvas.addEventListener("click", () => {
+  if (gameOver) resetGame();
+});
+
+// For accessibility, focus canvas for keyboard input
+canvas.addEventListener("pointerdown", () => canvas.focus());
+
+// Responsive canvas sizing
+function resizeCanvas() {
+  const size = Math.min(window.innerWidth * 0.95, 350, window.innerHeight * 0.65);
+  canvas.width = canvas.height = Math.round(size / GRID_SIZE) * GRID_SIZE;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+resetGame();
+loop();
