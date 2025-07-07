@@ -104,7 +104,7 @@ function update() {
     snake.some(s => s.x === head.x && s.y === head.y)
   ) {
     gameOver = true;
-    showMessage('Game Over!<br><small>Tap or Press Any Key<br>to Restart</small>');
+    showMessage('Swami akta akta abhyas kartana sapadla !<br><small>Tap or Press Any Key<br>to Restart</small>');
     return;
   }
 
@@ -114,7 +114,7 @@ function update() {
     score++;
     if (score >= maxScore) {
       won = true;
-      showMessage('🎉 You Win! 🎉<br><small>Tap or Press Any Key<br>to Play Again</small>');
+      showMessage('🎉 swami ne top kela akta akta abhyas karun ! 🎉<br><small>Tap or Press Any Key<br>to Play Again</small>');
       return;
     }
     fruit = spawnFruit();
