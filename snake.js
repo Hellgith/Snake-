@@ -31,7 +31,7 @@ function initGame() {
   dir = {x: 1, y: 0};
   nextDir = {...dir};
   score = 0;
-  maxScore = 10;
+  maxScore = 3;
   fruit = spawnFruit();
   gameOver = false;
   won = false;
